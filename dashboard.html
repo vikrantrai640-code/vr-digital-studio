@@ -150,7 +150,44 @@ card.append(title,meta,desc);
 list.appendChild(card);
 });
 }
+const statusBox = document.createElement("div");
+statusBox.style.marginTop = "16px";
 
+const statusSelect = document.createElement("select");
+statusSelect.style.padding = "10px";
+statusSelect.style.borderRadius = "8px";
+statusSelect.style.background = "#0b1120";
+statusSelect.style.color = "#ffffff";
+statusSelect.style.border = "1px solid #253249";
+
+["New", "Contacted", "Completed"].forEach(status => {
+  const option = document.createElement("option");
+  option.value = status;
+  option.textContent = status;
+  statusSelect.appendChild(option);
+});
+
+statusSelect.value = d.status || "New";
+
+statusSelect.addEventListener("change", async () => {
+  statusSelect.disabled = true;
+
+  try {
+    await db.collection("enquiries").doc(d.id).update({
+      status: statusSelect.value
+    });
+    state.textContent = "Lead status updated successfully.";
+  } catch (error) {
+    console.error(error);
+    state.textContent = "Status update failed. Please try again.";
+    statusSelect.value = d.status || "New";
+  } finally {
+    statusSelect.disabled = false;
+  }
+});
+
+statusBox.appendChild(statusSelect);
+card.appendChild(statusBox);
 function subscribe(){
 if(unsubscribe)unsubscribe();
 state.textContent="Refreshing enquiries…";
