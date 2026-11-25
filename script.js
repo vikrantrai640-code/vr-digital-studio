@@ -1,174 +1,105 @@
-/* VR Digital Studio — small, dependency-free interactions */
+/* VR Digital Studio — interactions + Firebase enquiry submission */
 "use strict";
-
-/*
- * SETUP: Replace this value with the studio's real inbox before publishing.
- * Example: const CONTACT_EMAIL = "hello@yourdomain.com";
- */
 const CONTACT_EMAIL = "vikrantrai640@gmail.com";
-
-/* Optional WhatsApp placeholder. Use country code + number, digits only.
- * Example: const WHATSAPP_NUMBER = "919876543210";
- * Leave empty until a real business number is ready.
- */
-const WHATSAPP_NUMBER = "";
+const firebaseConfig = {
+  apiKey: "AIzaSyAK-opjqjoJTP-K2JdEI056EZB0LdR-fOc",
+  authDomain: "vr-digital-b1a8b.firebaseapp.com",
+  projectId: "vr-digital-b1a8b",
+  storageBucket: "vr-digital-b1a8b.firebasestorage.app",
+  messagingSenderId: "758897488982",
+  appId: "1:758897488982:web:7930a058f2462dc2b277f7"
+};
+// Firebase config values are public client identifiers. Firestore access is protected by rules.
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const enquiryDb = firebase.firestore();
 
 document.addEventListener("DOMContentLoaded", () => {
   const menuToggle = document.querySelector(".menu-toggle");
   const nav = document.querySelector(".primary-nav");
   const navLinks = nav ? nav.querySelectorAll('a[href^="#"]') : [];
-
   const closeMenu = () => {
     if (!menuToggle || !nav) return;
     menuToggle.setAttribute("aria-expanded", "false");
     menuToggle.setAttribute("aria-label", "Open navigation");
     nav.classList.remove("is-open");
   };
-
   if (menuToggle && nav) {
     menuToggle.addEventListener("click", () => {
-      const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
-      menuToggle.setAttribute("aria-expanded", String(!isOpen));
-      menuToggle.setAttribute("aria-label", isOpen ? "Open navigation" : "Close navigation");
-      nav.classList.toggle("is-open", !isOpen);
+      const open = menuToggle.getAttribute("aria-expanded") === "true";
+      menuToggle.setAttribute("aria-expanded", String(!open));
+      menuToggle.setAttribute("aria-label", open ? "Open navigation" : "Close navigation");
+      nav.classList.toggle("is-open", !open);
     });
     navLinks.forEach(link => link.addEventListener("click", closeMenu));
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape") closeMenu();
-    });
-    document.addEventListener("click", event => {
-      if (!nav.contains(event.target) && !menuToggle.contains(event.target)) closeMenu();
-    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenu(); });
+    document.addEventListener("click", e => { if (!nav.contains(e.target) && !menuToggle.contains(e.target)) closeMenu(); });
   }
-
-  // Highlight the current in-page section in the desktop navigation.
   const sections = [...document.querySelectorAll("main section[id]")];
   if ("IntersectionObserver" in window && navLinks.length) {
-    const sectionObserver = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          navLinks.forEach(link => {
-            const active = link.getAttribute("href") === `#${entry.target.id}`;
-            link.classList.toggle("active", active);
-            if (active) link.setAttribute("aria-current", "location");
-            else link.removeAttribute("aria-current");
-          });
-        }
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (entry.isIntersecting) navLinks.forEach(link => {
+        const active = link.getAttribute("href") === `#${entry.target.id}`;
+        link.classList.toggle("active", active);
+        if (active) link.setAttribute("aria-current", "location"); else link.removeAttribute("aria-current");
       });
-    }, { rootMargin: "-35% 0px -55% 0px", threshold: 0 });
-    sections.forEach(section => sectionObserver.observe(section));
+    }), { rootMargin: "-35% 0px -55% 0px", threshold: 0 });
+    sections.forEach(section => observer.observe(section));
   }
-
-  // Reveal content as it enters the viewport. Content stays visible if unsupported.
   const revealItems = document.querySelectorAll(".reveal");
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if ("IntersectionObserver" in window && !reduceMotion) {
-    const revealObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12 });
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if ("IntersectionObserver" in window && !reducedMotion) {
+    const revealObserver = new IntersectionObserver((entries, observer) => entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }
+    }), { threshold: 0.12 });
     revealItems.forEach(item => revealObserver.observe(item));
-  } else {
-    revealItems.forEach(item => item.classList.add("is-visible"));
-  }
+  } else revealItems.forEach(item => item.classList.add("is-visible"));
 
-  // Keep the displayed contact details consistent with the single config value.
-  document.querySelectorAll("[data-email-link]").forEach(link => {
-    link.textContent = CONTACT_EMAIL;
-    link.href = `mailto:${CONTACT_EMAIL}`;
-  });
-
-  // Package buttons preselect the matching enquiry option.
+  document.querySelectorAll("[data-email-link]").forEach(link => { link.textContent = CONTACT_EMAIL; link.href = `mailto:${CONTACT_EMAIL}`; });
   const packageSelect = document.querySelector("#package");
-  document.querySelectorAll("[data-package]").forEach(button => {
-    button.addEventListener("click", () => {
-      if (!packageSelect) return;
-      const packageName = button.dataset.package;
-      const option = [...packageSelect.options].find(item =>
-        item.text.toLowerCase().includes(packageName.toLowerCase())
-      );
-      if (option) packageSelect.value = option.value;
-    });
-  });
-
-  // Contact form opens a pre-filled draft in the visitor's default email app.
+  document.querySelectorAll("[data-package]").forEach(button => button.addEventListener("click", () => {
+    if (!packageSelect) return;
+    const name = button.dataset.package;
+    const option = [...packageSelect.options].find(item => item.text.toLowerCase().includes(name.toLowerCase()));
+    if (option) packageSelect.value = option.value;
+  }));
   const form = document.querySelector("#contact-form");
   const status = document.querySelector("#form-status");
   if (form && status) {
-    const fields = [...form.querySelectorAll("input, textarea")];
-    fields.forEach(field => {
-      field.addEventListener("input", () => {
-        field.removeAttribute("aria-invalid");
-      });
-    });
-
-    form.addEventListener("submit", event => {
-      event.preventDefault();
-      status.className = "form-status";
-
+    [...form.querySelectorAll("input, textarea")].forEach(field => field.addEventListener("input", () => field.removeAttribute("aria-invalid")));
+    form.addEventListener("submit", async e => {
+      e.preventDefault(); status.className = "form-status";
       const name = form.elements.fullName.value.trim();
       const business = form.elements.businessName.value.trim();
-      const email = form.elements.email.value.trim();
-      const selectedPackage = form.elements.package.value || "Not specified";
+      const email = form.elements.email.value.trim().toLowerCase();
+      const packageName = form.elements.package.value || "Not specified";
       const description = form.elements.projectDescription.value.trim();
-
-      const requiredFields = [
-        { element: form.elements.fullName, valid: name.length >= 2 },
-        { element: form.elements.email, valid: form.elements.email.validity.valid && email.length > 0 },
-        { element: form.elements.projectDescription, valid: description.length >= 10 }
+      const checks = [
+        { element: form.elements.fullName, valid: name.length >= 2 && name.length <= 100 },
+        { element: form.elements.email, valid: form.elements.email.validity.valid && email.length > 0 && email.length <= 254 },
+        { element: form.elements.projectDescription, valid: description.length >= 10 && description.length <= 2000 }
       ];
-      const invalid = requiredFields.filter(field => !field.valid);
+      const invalid = checks.filter(x => !x.valid);
       if (invalid.length) {
-        invalid.forEach(field => field.element.setAttribute("aria-invalid", "true"));
-        invalid[0].element.focus();
-        status.textContent = "Please check your name, email address and project description.";
-        status.classList.add("error");
-        return;
+        invalid.forEach(x => x.element.setAttribute("aria-invalid", "true"));
+        invalid[0].element.focus(); status.textContent = "Please check your name, email address and project description."; status.classList.add("error"); return;
       }
-
-      if (!CONTACT_EMAIL || CONTACT_EMAIL === "YOUR_EMAIL@example.com") {
-        status.textContent = "The enquiry form is ready, but the studio email is still a placeholder. Add your real email in script.js before publishing.";
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) submitButton.disabled = true;
+      status.textContent = "Sending enquiry…";
+      try {
+        await enquiryDb.collection("enquiries").add({
+          name, businessName: business, email, package: packageName, description,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        status.textContent = "Thank you! Your enquiry was sent successfully. We'll reply by email.";
+        status.classList.add("success"); form.reset();
+      } catch (err) {
+        console.error("Enquiry submission error:", err);
+        status.textContent = "Sorry, we couldn't send this enquiry right now. Please email us directly.";
         status.classList.add("error");
-        return;
-      }
-
-      const subject = `Website enquiry from ${name}`;
-      const body = [
-        "Hello VR Digital Studio,",
-        "",
-        "I'd like to discuss a website project.",
-        "",
-        `Name: ${name}`,
-        `Business: ${business || "Not provided"}`,
-        `Reply email: ${email}`,
-        `Service / package: ${selectedPackage}`,
-        "",
-        "Project details:",
-        description,
-        "",
-        "Thank you."
-      ].join("\n");
-
-      const mailto = `mailto:${encodeURIComponent(CONTACT_EMAIL)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      status.textContent = "Opening your email application with the enquiry details. Review the draft and press Send there.";
-      status.classList.add("success");
-      window.location.href = mailto;
+      } finally { if (submitButton) submitButton.disabled = false; }
     });
   }
-
-  // Dynamic footer year.
   const year = document.querySelector("#current-year");
   if (year) year.textContent = new Date().getFullYear();
-
-  // Configure WhatsApp only after a real number has been added.
-  if (WHATSAPP_NUMBER) {
-    document.querySelectorAll("[data-whatsapp-link]").forEach(link => {
-      link.href = `https://wa.me/${WHATSAPP_NUMBER}`;
-      link.hidden = false;
-    });
-  }
 });
