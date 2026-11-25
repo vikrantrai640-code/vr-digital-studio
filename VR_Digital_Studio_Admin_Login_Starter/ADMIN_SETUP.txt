@@ -1,0 +1,22 @@
+VR DIGITAL STUDIO — ADMIN LOGIN STARTER
+
+Files added:
+- admin.html: admin sign-in page
+- admin.js: Firebase Authentication initialization and email restriction
+- dashboard.html: authenticated admin placeholder dashboard
+
+IMPORTANT SETUP REQUIRED BEFORE DEPLOYMENT:
+1. Open Firebase Console > Project settings > General > Your apps > Web app.
+2. Copy the Web app config values (apiKey, messagingSenderId, appId) into admin.js.
+   The config is public client configuration; do not put private service-account keys here.
+3. Confirm Authentication > Sign-in method > Email/Password is enabled.
+4. Firebase Authentication > Users should contain the authorized admin email.
+5. Firebase Console > Authentication > Settings > Authorized domains: add your GitHub Pages domain
+   (vikrantrai640-code.github.io) if it is not already listed.
+6. Keep Firestore security rules closed until secure admin authorization rules are set.
+
+Dashboard note:
+The current public contact form prepares an email draft using mailto. It does NOT store enquiries
+in Firestore. The dashboard will show this status until the contact form is changed to save
+records and secure Firestore rules are implemented.
+Admin email: vikrantrai640@gmail.com
