@@ -1,13 +1,13 @@
 /* VR Digital Studio admin starter. Fill in firebaseConfig from Firebase Console before use. */
 (function(){
   const firebaseConfig = {
-    apiKey: "PASTE_FIREBASE_WEB_API_KEY_HERE",
-    authDomain: "vr-digital-b1a8b.firebaseapp.com",
-    projectId: "vr-digital-b1a8b",
-    storageBucket: "vr-digital-b1a8b.firebasestorage.app",
-    messagingSenderId: "PASTE_MESSAGING_SENDER_ID_HERE",
-    appId: "PASTE_FIREBASE_APP_ID_HERE"
-  };
+  apiKey: "AIzaSyAK-opjqjoJTP-K2JdEI056EZB0LdR-fOc",
+  authDomain: "vr-digital-b1a8b.firebaseapp.com",
+  projectId: "vr-digital-b1a8b",
+  storageBucket: "vr-digital-b1a8b.firebasestorage.app",
+  messagingSenderId: "758897488982",
+  appId: "1:758897488982:web:7930a058f2462dc2b277f7"
+};
   if(firebaseConfig.apiKey.startsWith("PASTE_") || firebaseConfig.appId.startsWith("PASTE_")){
     const msg=document.getElementById("message");if(msg)msg.textContent="Setup incomplete: add the Firebase web app config in admin.js.";
     return;
