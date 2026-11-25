@@ -1,7 +1,189 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Dashboard | VR Digital Studio</title><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="style.css"><style>
-.dash-wrap{min-height:100vh;background:#f5f7fb;padding:30px 18px}.dash{max-width:950px;margin:auto}.dash-top{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:18px 22px;background:#0b1422;color:white;border-radius:12px}.dash-top strong{font:800 18px var(--font-heading)}.dash-top button{border:1px solid #526174;border-radius:6px;padding:10px 15px;background:transparent;color:white;cursor:pointer}.dash-box{margin-top:25px;padding:28px;background:white;border:1px solid #e5eaf1;border-radius:12px}.dash-box h1{font:800 28px var(--font-heading);letter-spacing:-.05em;margin:0 0 12px}.dash-box p{color:#667085;font-size:13px;line-height:1.8}.dash-email{font-size:12px;color:#667085}.enquiry-list{display:grid;gap:14px;margin-top:20px}.enquiry-card{border:1px solid #e5eaf1;border-radius:10px;padding:18px}.enquiry-card h3{margin:0 0 6px}.enquiry-meta{font-size:12px;color:#667085;margin-bottom:10px}.enquiry-card p{white-space:pre-wrap;overflow-wrap:anywhere}.dash-state{padding:16px;border-radius:8px;background:#eef4ff;color:#244b8f;font-size:13px}.dash-state.error{background:#fff0f0;color:#8b2424}
-</style></head><body><div class="dash-wrap"><main class="dash"><header class="dash-top"><strong>VR<span style="color:#5bd3a6">.</span> DIGITAL STUDIO · ADMIN</strong><button id="logout">LOG OUT</button></header><section class="dash-box"><p class="eyebrow">ADMIN AREA</p><h1>Enquiries</h1><p class="dash-email" id="signed-in"></p><div id="dash-state" class="dash-state" role="status">Checking admin access…</div><div id="enquiry-list" class="enquiry-list"></div><p><a href="index.html">← Return to public site</a></p></section></main></div>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script><script src="admin.js"></script><script>
-(function(){const auth=window.vrFirebaseAuth;if(!auth)return;const cfg={apiKey:"AIzaSyAK-opjqjoJTP-K2JdEI056EZB0LdR-fOc",authDomain:"vr-digital-b1a8b.firebaseapp.com",projectId:"vr-digital-b1a8b",storageBucket:"vr-digital-b1a8b.firebasestorage.app",messagingSenderId:"758897488982",appId:"1:758897488982:web:7930a058f2462dc2b277f7"};if(!firebase.apps.length)firebase.initializeApp(cfg);const db=firebase.firestore();const state=document.getElementById("dash-state"),list=document.getElementById("enquiry-list");auth.onAuthStateChanged(user=>{if(!user||user.email!=="vikrantrai640@gmail.com"){auth.signOut();location.replace("admin.html");return;}document.getElementById("signed-in").textContent="Signed in as "+user.email;state.textContent="Loading enquiries…";db.collection("enquiries").orderBy("createdAt","desc").onSnapshot(snapshot=>{list.innerHTML="";if(snapshot.empty){state.textContent="No enquiries yet. New website submissions will appear here.";return;}state.textContent=snapshot.size+" enquiry record(s).";snapshot.forEach(doc=>{const d=doc.data();const card=document.createElement("article");card.className="enquiry-card";const title=document.createElement("h3");title.textContent=d.name||"Unnamed";const meta=document.createElement("div");meta.className="enquiry-meta";const date=d.createdAt&&d.createdAt.toDate?d.createdAt.toDate().toLocaleString():"Date pending";meta.textContent=[d.businessName||"Business not provided",d.email||"No email",d.package||"No package",date].join(" · ");const body=document.createElement("p");body.textContent=d.description||"No project description";card.append(title,meta,body);list.appendChild(card);});},error=>{console.error(error);state.textContent="Unable to load enquiries. Check Firestore rules and admin login.";state.classList.add("error");});});document.getElementById("logout").addEventListener("click",()=>auth.signOut().then(()=>location.replace("admin.html")));})();
-</script></body></html>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard | VR Digital Studio</title>
+<link rel="icon" href="favicon.svg">
+<link rel="stylesheet" href="style.css">
+<style>
+:root{--dash-bg:#0b1120;--dash-card:#131d2e;--dash-border:#253249;--dash-text:#eef3fb;--dash-muted:#91a0b8;--dash-accent:#5bd3a6}
+body{margin:0}
+.crm{min-height:100vh;background:var(--dash-bg);color:var(--dash-text);padding:30px 18px;font-family:Arial,sans-serif}
+.crm-inner{max-width:1100px;margin:auto}
+.crm-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--dash-border);padding-bottom:22px}
+.crm-brand{font-size:18px;font-weight:800;letter-spacing:1px}
+.crm-brand span{color:var(--dash-accent)}
+.crm-top-right{display:flex;align-items:center;gap:12px}
+.crm-btn{border:1px solid var(--dash-border);background:var(--dash-card);color:var(--dash-text);padding:11px 15px;border-radius:9px;cursor:pointer}
+.crm-btn:hover{border-color:var(--dash-accent)}
+.crm-title{margin:32px 0 8px;font-size:32px;letter-spacing:-1px}
+.crm-sub{color:var(--dash-muted);font-size:14px;margin:0}
+.crm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:25px}
+.crm-stat{background:var(--dash-card);border:1px solid var(--dash-border);padding:22px;border-radius:14px}
+.crm-stat small{display:block;color:var(--dash-muted);font-size:12px;margin-bottom:12px}
+.crm-stat strong{font-size:32px}
+.crm-stat .accent{color:var(--dash-accent)}
+.crm-tools{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+.crm-search{flex:1;min-width:200px;background:var(--dash-card);border:1px solid var(--dash-border);color:white;padding:14px;border-radius:10px;outline:none}
+.crm-search:focus{border-color:var(--dash-accent)}
+.crm-list{display:grid;gap:14px;margin-top:20px}
+.crm-lead{background:var(--dash-card);border:1px solid var(--dash-border);border-radius:14px;padding:22px}
+.crm-lead h3{margin:0 0 10px;font-size:18px}
+.crm-meta{color:var(--dash-muted);font-size:12px;line-height:1.8;overflow-wrap:anywhere}
+.crm-desc{color:#d4deed;font-size:14px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;margin:14px 0 0}
+.crm-status{padding:14px;border:1px solid var(--dash-border);background:var(--dash-card);border-radius:10px;color:var(--dash-muted);margin-top:20px;font-size:13px}
+.crm-empty{padding:35px 20px;text-align:center;border:1px dashed var(--dash-border);border-radius:14px;color:var(--dash-muted)}
+.crm-foot{margin-top:30px;padding-top:20px;border-top:1px solid var(--dash-border);font-size:12px;color:var(--dash-muted)}
+.crm-foot a{color:var(--dash-accent);text-decoration:none}
+@media(max-width:700px){
+ .crm{padding:20px 13px}
+ .crm-stats{grid-template-columns:1fr}
+ .crm-title{font-size:27px}
+ .crm-stat{padding:18px}
+ .crm-lead{padding:17px}
+}
+</style>
+</head>
+<body>
+<div class="crm">
+<main class="crm-inner">
+<header class="crm-top">
+<div class="crm-brand">VR<span>.</span> DIGITAL STUDIO <small style="font-weight:400;color:var(--dash-muted)"> / ADMIN</small></div>
+<div class="crm-top-right">
+<button class="crm-btn" id="refresh">↻ Refresh</button>
+<button class="crm-btn" id="logout">Log out</button>
+</div>
+</header>
+
+<h1 class="crm-title">Overview</h1>
+<p class="crm-sub">Your studio enquiries, all in one place.</p>
+
+<section class="crm-stats">
+<div class="crm-stat"><small>TOTAL ENQUIRIES</small><strong id="total">—</strong></div>
+<div class="crm-stat"><small>NEW ENQUIRIES</small><strong class="accent" id="new-count">—</strong></div>
+<div class="crm-stat"><small>TODAY</small><strong id="today">—</strong></div>
+</section>
+
+<div class="crm-tools">
+<input class="crm-search" id="search" type="search" placeholder="Search name, email, business or package…">
+</div>
+
+<div class="crm-status" id="state" role="status">Checking admin access…</div>
+<section class="crm-list" id="list"></section>
+
+<footer class="crm-foot">
+<a href="index.html">← Back to website</a>
+<p id="signed-in"></p>
+</footer>
+</main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="admin.js"></script>
+<script>
+(function(){
+"use strict";
+const auth=window.vrFirebaseAuth;
+if(!auth){document.getElementById("state").textContent="Authentication unavailable. Please reload.";return;}
+
+const cfg={
+apiKey:"AIzaSyAK-opjqjoJTP-K2JdEI056EZB0LdR-fOc",
+authDomain:"vr-digital-b1a8b.firebaseapp.com",
+projectId:"vr-digital-b1a8b",
+storageBucket:"vr-digital-b1a8b.firebasestorage.app",
+messagingSenderId:"758897488982",
+appId:"1:758897488982:web:7930a058f2462dc2b277f7"
+};
+if(!firebase.apps.length)firebase.initializeApp(cfg);
+const db=firebase.firestore();
+
+const state=document.getElementById("state");
+const list=document.getElementById("list");
+const search=document.getElementById("search");
+const totalEl=document.getElementById("total");
+const newEl=document.getElementById("new-count");
+const todayEl=document.getElementById("today");
+const refresh=document.getElementById("refresh");
+let records=[];
+let unsubscribe=null;
+
+function isToday(date){
+if(!date)return false;
+const d=date.toDate();
+const now=new Date();
+return d.getDate()===now.getDate()&&
+d.getMonth()===now.getMonth()&&
+d.getFullYear()===now.getFullYear();
+}
+
+function render(){
+const q=search.value.trim().toLowerCase();
+const filtered=records.filter(d=>
+[d.name,d.email,d.businessName,d.package,d.description]
+.some(v=>String(v||"").toLowerCase().includes(q))
+);
+list.innerHTML="";
+if(!filtered.length){
+const empty=document.createElement("div");
+empty.className="crm-empty";
+empty.textContent=q?"No matching enquiries found.":"No enquiries yet.";
+list.appendChild(empty);
+return;
+}
+filtered.forEach(d=>{
+const card=document.createElement("article");
+card.className="crm-lead";
+const title=document.createElement("h3");
+title.textContent=d.name||"Unnamed customer";
+const meta=document.createElement("div");
+meta.className="crm-meta";
+const date=d.createdAt&&d.createdAt.toDate?d.createdAt.toDate().toLocaleString():"Date pending";
+meta.textContent=[d.businessName||"Business not provided",d.email||"No email",d.package||"No package",date].join(" · ");
+const desc=document.createElement("p");
+desc.className="crm-desc";
+desc.textContent=d.description||"No description provided.";
+card.append(title,meta,desc);
+list.appendChild(card);
+});
+}
+
+function subscribe(){
+if(unsubscribe)unsubscribe();
+state.textContent="Refreshing enquiries…";
+unsubscribe=db.collection("enquiries").orderBy("createdAt","desc").onSnapshot(snapshot=>{
+records=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+totalEl.textContent=records.length;
+newEl.textContent=records.length;
+todayEl.textContent=records.filter(d=>isToday(d.createdAt)).length;
+state.textContent="Live connection · "+records.length+" enquiry record(s)";
+render();
+},error=>{
+console.error(error);
+state.textContent="Could not load enquiries. Please check your admin access.";
+state.style.color="#ff9292";
+});
+}
+
+auth.onAuthStateChanged(user=>{
+if(!user||user.email!=="vikrantrai640@gmail.com"){
+auth.signOut();
+location.replace("admin.html");
+return;
+}
+document.getElementById("signed-in").textContent="Signed in as "+user.email;
+subscribe();
+});
+
+search.addEventListener("input",render);
+refresh.addEventListener("click",subscribe);
+document.getElementById("logout").addEventListener("click",()=>{
+auth.signOut().then(()=>location.replace("admin.html"));
+});
+})();
+</script>
+</body>
+</html>
