@@ -108,7 +108,31 @@ h1, h2, h3, p { margin-top: 0; }
   .reveal { opacity: 1; transform: none; }
 }
 /* Emergency homepage visibility fix */
+/* Safe reveal animations — content remains visible by default */
 .reveal {
-  opacity: 1 !important;
-  transform: none !important;
+  opacity: 1;
+  transform: none;
+  transition: opacity .65s ease, transform .65s ease;
 }
+
+/* Animate only when JavaScript explicitly enables animation */
+.reveal.is-animated {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.reveal.is-animated.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.is-animated,
+  .reveal.is-animated.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
