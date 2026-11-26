@@ -10,8 +10,19 @@ const firebaseConfig = {
   appId: "1:758897488982:web:7930a058f2462dc2b277f7"
 };
 // Firebase config values are public client identifiers. Firestore access is protected by rules.
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const enquiryDb = firebase.firestore();
+let enquiryDb = null;
+
+try {
+  if (typeof firebase !== "undefined" && firebase.apps) {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    enquiryDb = firebase.firestore();
+  }
+} catch (error) {
+  console.error("Firebase initialization failed:", error);
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const menuToggle = document.querySelector(".menu-toggle");
