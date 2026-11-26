@@ -57,13 +57,26 @@ document.addEventListener("DOMContentLoaded", () => {
     sections.forEach(section => observer.observe(section));
   }
   const revealItems = document.querySelectorAll(".reveal");
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if ("IntersectionObserver" in window && !reducedMotion) {
-    const revealObserver = new IntersectionObserver((entries, observer) => entries.forEach(entry => {
-      if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }
-    }), { threshold: 0.12 });
-    revealItems.forEach(item => revealObserver.observe(item));
-  } else revealItems.forEach(item => item.classList.add("is-visible"));
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+if ("IntersectionObserver" in window && !reducedMotion) {
+  const revealObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  revealItems.forEach(item => {
+    item.classList.add("is-animated");
+    revealObserver.observe(item);
+  });
+} else {
+  revealItems.forEach(item => item.classList.add("is-visible"));
+}
+
 
   document.querySelectorAll("[data-email-link]").forEach(link => { link.textContent = CONTACT_EMAIL; link.href = `mailto:${CONTACT_EMAIL}`; });
   const packageSelect = document.querySelector("#package");
